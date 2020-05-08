@@ -20,6 +20,7 @@ class RegionSpider(scrapy.Spider):
         region_loader = ItemLoader(item=RegionItem(), selector=response)
         region_name = response.css('div.tab-area h2 strong ::text').get()
         region_loader.add_css('region_name', css='div.tab-area h2 strong ::text')
+        region_loader.add_css('region_photo', css='div.product-area div.image img ::attr(src)')
         region_loader.add_css('description', css='div.col-md-8 > div.description > p ::text')
         region_loader.add_css('wine_style', css='div.product-area div.description > p ::text')
         region_loader.add_css('history', css='div.tab-2 div.description p ::text')   

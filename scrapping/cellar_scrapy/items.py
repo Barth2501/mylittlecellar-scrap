@@ -14,14 +14,26 @@ def parse_image(text):
         return 'Blanc/à garder'
     elif text == 'B2f':
         return 'Blanc/à boire ou à garder'
-    elif text == 'B3f':
+    elif text[0] == 'B':
         return 'Blanc/à boire'
     elif text == 'R1f':
         return 'Rouge/à garder'
     elif text == 'R2f':
         return 'Rouge/à boire ou à garder'
-    elif text == 'R3f':
+    elif text[0] == 'R':
         return 'Rouge/à boire'
+    elif text == 'O1f':
+        return 'Rose/à garder'
+    elif text == 'O2f':
+        return 'Rose/à boire ou à garder'
+    elif text[0] == 'O':
+        return 'Rose/à boire'
+    elif text == 'L1f':
+        return 'Jaune/à garder'
+    elif text == 'L2f':
+        return 'Jaune/à boire ou à garder'
+    elif text[0] == 'L':
+        return 'Jaune/à boire'
 
 def parse_vintage(text):
     return int(text)
@@ -41,6 +53,38 @@ def parse_grape_color(text):
     elif text[-1]=='2':
         return 'Blanc'
 
+def elim_blank(text):
+    text = text.strip()
+    if text == '' or text ==',':
+        return None
+    else:
+        return text
+
+def parse_vintage_color(text):
+    text = text.split(' ')
+    return text[-1][:-1]
+
+def parse_vintage_rank(text):
+    if text=='Millésime du millénaire':
+        return 10
+    elif text == 'Millésime du siècle':
+        return 9
+    elif text == 'Millésime exceptionnel':
+        return 8
+    elif text == 'Excellent millésime':
+        return 7
+    elif text == 'Très grand millésime':
+        return 6
+    elif text == 'Grand millésime':
+        return 5
+    elif text == 'Très bon millésime':
+        return 4
+    elif text == 'Bon millésime':
+        return 3
+    elif text == 'Millésime moyen':
+        return 2
+    elif text == 'Millésime médiocre':
+        return 1
 
 class WineDeciderItem(scrapy.Item):
     # define the fields for your item here like:
@@ -145,6 +189,22 @@ class RecipesItem(scrapy.Item):
     preparation = scrapy.Field(
         input_processor=MapCompose(parse_description),
     )
+    proportion = scrapy.Field(
+        input_processor=MapCompose(elim_blank),
+        output_processor=TakeFirst()
+    )
+    time_prep = scrapy.Field(
+        input_processor=MapCompose(elim_blank),
+        output_processor=TakeFirst()
+    )
+    time_cook = scrapy.Field(
+        input_processor=MapCompose(elim_blank),
+        output_processor=TakeFirst()
+    )
+    desc = scrapy.Field(
+        input_processor=MapCompose(str.strip),
+        output_processor=TakeFirst()
+    )
     
 class RegionItem(scrapy.Item):
     region_name = scrapy.Field(
@@ -164,6 +224,10 @@ class RegionItem(scrapy.Item):
         input_processor=MapCompose(parse_description)
     )
     region_map = scrapy.Field(
+        input_processor=MapCompose(str.strip),
+        output_processor=TakeFirst()
+    )
+    region_photo = scrapy.Field(
         input_processor=MapCompose(str.strip),
         output_processor=TakeFirst()
     )
@@ -208,5 +272,22 @@ class GrapeItem(scrapy.Item):
     )
     similar = scrapy.Field(
         input_processor=MapCompose(str.strip),
+    )
+
+class VintageItem(scrapy.Item):
+    area_name = scrapy.Field(
+        input_processor=MapCompose(str.strip),
+        output_processor=TakeFirst()
+    )
+    rank = scrapy.Field(
+        input_processor=MapCompose(parse_vintage_rank),
+        output_processor=TakeFirst()
+    )
+    years = scrapy.Field(
+        input_processor=MapCompose(elim_blank)
+    )
+    color = scrapy.Field(
+        input_processor=MapCompose(parse_vintage_color),
+        output_processor=TakeFirst()
     )
 

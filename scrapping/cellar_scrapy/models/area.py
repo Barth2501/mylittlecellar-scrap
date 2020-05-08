@@ -1,4 +1,6 @@
 from peewee import *
+from playhouse.sqlite_ext import *
+from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
 from .region import Region
@@ -45,3 +47,23 @@ class AreaGrape(BaseModel):
     id = AutoField()
     grape = ForeignKeyField(Grape, backref='areas')
     area = ForeignKeyField(Area, backref='grapes')
+
+class AreaVintage(BaseModel):
+    id = AutoField()
+    area = ForeignKeyField(Area, backref='vintage')
+    color = CharField()
+    vintage = TextField()
+
+    def add_rank(self, year, rank):
+        #vintage_list = self.vintage
+        #vintage_list = vintage_list +",{'vintage':{},'rank':{}}".format(year,rank)
+        data = {year:rank}
+        AreaVintage.update({
+                AreaVintage.vintage: AreaVintage.vintage.concat(data)
+            }).where(AreaVintage.id==self).execute()
+        return AreaVintage.update({
+                AreaVintage.vintage: AreaVintage.vintage.concat(',')
+            }).where(AreaVintage.id==self).execute()
+
+with db:
+    AreaVintage.create_table(safe=True)

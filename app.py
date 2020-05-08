@@ -9,11 +9,15 @@ from scrapy.signalmanager import dispatcher
 from scrapping.cellar_scrapy.spiders.wine_spider import WineDeciderSpider, HachetteWineSpider, RecipeSpider, WineSpider
 from scrapping.cellar_scrapy.spiders.recipes_spider import RecipesSpider
 from scrapping.cellar_scrapy.spiders.region_spider import RegionSpider, GrapeSpider, VinDePaysSpider
+from scrapping.cellar_scrapy.spiders.vintage_spider import VintageSpider
 
-from scrapping.cellar_scrapy.pipelines import HachettePipeline, RecipePipeline, WinePipeline, RecipesPipeline, WineDeciderPipeline, RegionPipeline, GrapesPipeline
+from scrapping.cellar_scrapy.pipelines import HachettePipeline, RecipePipeline, WinePipeline, RecipesPipeline, WineDeciderPipeline, RegionPipeline, GrapesPipeline, VintagePipeline
 # from scrapy.utils.project import get_project_settings
 # from scrapping.main import wine_decider
 import time
+
+from scrapping.cellar_scrapy.models.area import Area, AreaVintage
+
 
 app = Flask('scrapping')
 app.config['ENV'] = 'development'
@@ -87,9 +91,9 @@ def recipe():
         response_object['status'] = 'success'
         return jsonify(response_object)
 
-@app.route('/hachette/recipes', methods=['POST'])
+@app.route('/hachette/recipes', methods=['GET'])
 def recipes():
-    if request.method == 'POST':
+    if request.method == 'GET':
         crawl_runner = CrawlerRunner({
             'BOT_NAME' : 'scrapping.cellar_scrapy',
             'SPIDER_MODULES' : ['scrapping.cellar_scrapy.spiders'],
@@ -99,14 +103,12 @@ def recipes():
             'scrapping.cellar_scrapy.pipelines.RecipesPipeline': 300,
             },
         })
-        post_data = request.get_json()
-        scrape_with_crochet(query=post_data['index'], spider=RecipesSpider,crawl_runner=crawl_runner, pipeline=RecipesPipeline)
-        while len(RecipesPipeline.items)<6:
-            continue
+        pages = [i for i in range(50,100)]
+        for page in pages:
+            print('--------PAGE {}-----------'.format(page))
+            scrape_with_crochet(query=page, spider=RecipesSpider,crawl_runner=crawl_runner, pipeline=RecipesPipeline)
+            time.sleep(10)
         response_object = {'status':'success'}
-        response_object['recipes'] = RecipesPipeline.items
-        RecipesPipeline.items = []
-        print(response_object)
         return jsonify(response_object)
 
 @app.route('/hachette/wine', methods=['POST'])
@@ -179,6 +181,33 @@ def grapes_info():
             scrape_with_crochet(spider=GrapeSpider, query=letter, crawl_runner=crawl_runner, pipeline=GrapesPipeline)
         response_object = {'status': 'success'}
         return jsonify(response_object)
+
+@app.route('/vintage_info', methods=['GET'])
+def vintage_info():
+    if request.method=='GET':
+        crawl_runner = CrawlerRunner({
+            'BOT_NAME' : 'scrapping.cellar_scrapy',
+            'SPIDER_MODULES' : ['scrapping.cellar_scrapy.spiders'],
+            'NEWSPIDER_MODULE' : 'scrapping.cellar_scrapy.spiders',
+            'ROBOTSTXT_OBEY' : False,
+            'ITEM_PIPELINES' : {
+            'scrapping.cellar_scrapy.pipelines.VintagePipeline': 300,
+            },
+        })
+        #area_name='Cérons'
+        for i in range(1,478):
+            print(i)
+            area = Area.get_by_id(i)
+            if area.name[:12]=='Vins de pays':
+                name_to_search = area.name[17:]
+            else:
+                name_to_search = area.name
+            area_vintage = AreaVintage.get_or_none(area=area)
+            if not area_vintage:
+                scrape_with_crochet(spider=VintageSpider, query=[name_to_search,area.name], crawl_runner=crawl_runner, pipeline=VintagePipeline)
+                time.sleep(10)
+        response_object = {'status': 'success'}
+        return jsonify(response_object)        
 
 @app.route("/h_scrape/<query>")
 def hachette_scrape(query):

@@ -19,13 +19,19 @@ class RecipesSpider(scrapy.Spider):
     def parse_recipe(self,response):
         loader = ItemLoader(item=RecipesItem(), selector=response)
         loader.add_css('name', css='div.container h1.main-title span ::text')
+        loader.add_css('image', css='div.product-area div.cuisine-page img::attr(src)')
+        loader.add_css('proportion', css='div.product-area div.people div.number ::text')
+        loader.add_css('time_prep', css='div.product-area div.columns :nth-child(3) div.number ::text')
+        loader.add_css('time_cook', css='div.product-area div.columns :last-child div.number ::text')
         loader.add_css('category_name', css='div.main-content li:nth-child(3) a span ::text')
+        loader.add_css('desc', css='div.product-area div.description p::text')
         ingredient_loader = loader.nested_css('div.ingredient-area div.ingredient li')
         ingredient_loader.add_css('ingredients', css='::text')
 
-        ## Uncomment if we decided to show the recipe 
-        # prepa_loader = loader.nested_css('div.preparation li')
-        # prepa_loader.add_css('preparation', css='div > p ::text')
+        # Uncomment if we decided to show the recipe 
+        prepa_loader = loader.nested_css('div.preparation li')
+        prepa_loader.add_css('preparation', css='div > p ::text')
+
         area_loader = loader.nested_css('div.name-area div.item')
         area_loader.add_css('areas', css='div.title a ::text')
         # prepa_url = response.css('div.recipe-info div.action a ::attr(href)')
