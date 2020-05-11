@@ -11,29 +11,29 @@ from scrapy.loader.processors import MapCompose, TakeFirst
 def parse_image(text):
     text = text[-7:-4]
     if text == 'B1f':
-        return 'Blanc/à garder'
+        return 'blanc/à garder'
     elif text == 'B2f':
-        return 'Blanc/à boire ou à garder'
+        return 'blanc/à boire ou à garder'
     elif text[0] == 'B':
-        return 'Blanc/à boire'
+        return 'blanc/à boire'
     elif text == 'R1f':
-        return 'Rouge/à garder'
+        return 'rouge/à garder'
     elif text == 'R2f':
-        return 'Rouge/à boire ou à garder'
+        return 'rouge/à boire ou à garder'
     elif text[0] == 'R':
-        return 'Rouge/à boire'
+        return 'rouge/à boire'
     elif text == 'O1f':
-        return 'Rose/à garder'
+        return 'rosé/à garder'
     elif text == 'O2f':
-        return 'Rose/à boire ou à garder'
+        return 'rosé/à boire ou à garder'
     elif text[0] == 'O':
-        return 'Rose/à boire'
+        return 'rosé/à boire'
     elif text == 'L1f':
-        return 'Jaune/à garder'
+        return 'jaune/à garder'
     elif text == 'L2f':
-        return 'Jaune/à boire ou à garder'
+        return 'jaune/à boire ou à garder'
     elif text[0] == 'L':
-        return 'Jaune/à boire'
+        return 'jaune/à boire'
 
 def parse_vintage(text):
     return int(text)
